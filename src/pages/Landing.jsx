@@ -286,6 +286,7 @@ function VideoPortada() {
     io.observe(v); return () => io.disconnect()
   }, [])
   const [mudo, setMudo] = useState(true)
+  const vertical = typeof window !== 'undefined' && window.innerWidth < 700 && window.innerHeight > window.innerWidth
   useEffect(() => { const v = ref.current; if (!v) return; const h = () => setMudo(v.muted); v.addEventListener('volumechange', h); return () => v.removeEventListener('volumechange', h) }, [])
   const sonido = () => { const v = ref.current; if (!v) return; v.muted = !v.muted; if (!v.muted) { if (v.currentTime > 1 && v.paused === false) v.currentTime = 0; v.play().catch(() => {}) } }
   const completa = () => {
@@ -297,8 +298,8 @@ function VideoPortada() {
   }
   return (
     <>
-      <Reveal delay={100} className="lp-video">
-        <video ref={ref} src="/guia/portada.mp4" poster="/guia/portada.jpg" muted loop playsInline controls preload="metadata" aria-label="Vídeo de presentación de Cuentas Claras" onDoubleClick={completa} />
+      <Reveal delay={100} className={'lp-video' + (vertical ? ' vert' : '')}>
+        <video ref={ref} src={vertical ? '/guia/portada-vertical.mp4' : '/guia/portada.mp4'} poster={vertical ? '/guia/portada-vertical.jpg' : '/guia/portada.jpg'} className={vertical ? 'vert' : ''} muted loop playsInline controls preload="metadata" aria-label="Vídeo de presentación de Cuentas Claras" onDoubleClick={completa} />
       </Reveal>
       <div className="row wrap" style={{ gap: 10, justifyContent: 'center' }}>
         <button className="btn lp-fs" onClick={sonido}>{mudo ? '🔊 Escuchar con sonido' : '🔇 Silenciar'}</button>
