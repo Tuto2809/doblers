@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useApp } from '../store'
 import { Icon, Seg } from './ui'
 import { supabase } from '../lib/supabase'
+import { useTour } from './Tour'
+import { CAPITULO_DE_TAB } from '../lib/guia'
 
 const TABS = [['resumen', 'Resumen', Icon.resumen], ['movimientos', 'Movimientos', Icon.movs], ['presupuesto', 'Presupuesto', Icon.pres], ['ajustes', 'Ajustes', Icon.ajustes]]
 
@@ -54,6 +56,7 @@ export default function Shell({ children }) {
   const [perfilMenu, setPerfilMenu] = useState(false)
   const [cuentaMenu, setCuentaMenu] = useState(false)
   const timer = useRef(null)
+  const { iniciar } = useTour()
 
   // El menú se cierra solo tras 8 s sin interacción
   const armar = () => { clearTimeout(timer.current); timer.current = setTimeout(() => setMenu(false), 8000) }
@@ -66,19 +69,20 @@ export default function Shell({ children }) {
   return (
     <div className={'app' + (desktop ? ' desktop' : '')}>
       <header className="topbar">
-        {desktop && <button className="btn icon" aria-label="Abrir menú" aria-expanded={menu} onClick={() => setMenu(true)}>{Icon.menu()}</button>}
+        {desktop && <button data-tour="menu" className="btn icon" aria-label="Abrir menú" aria-expanded={menu} onClick={() => setMenu(true)}>{Icon.menu()}</button>}
         <button className="row" style={{ border: 0, background: 'none', padding: 0, cursor: 'pointer', gap: 10 }} aria-label="Ir al resumen" onClick={() => ir('resumen')}>
           <span className="logo" aria-hidden="true">€</span>
-          <strong style={{ fontSize: 16 }}>Cuentas Claras</strong>
+          <strong style={{ fontSize: desktop ? 16 : 15, whiteSpace: 'nowrap' }}>Cuentas Claras</strong>
         </button>
-        <div style={{ marginLeft: 'auto', position: 'relative' }}>
-          <button className="pill" style={{ height: 34, border: 0, cursor: 'pointer', fontSize: 13 }} aria-haspopup="menu" aria-expanded={perfilMenu} onClick={() => { setPerfilMenu(!perfilMenu); setCuentaMenu(false) }}>
+        <button data-tour="ayuda" className="btn icon" style={{ marginLeft: 'auto', width: desktop ? 36 : 32, height: desktop ? 36 : 32, minWidth: 0, borderRadius: 18, fontWeight: 800, fontSize: 15, flex: 'none' }} aria-label="Ayuda de esta pantalla" title="Ayuda de esta pantalla" onClick={() => { setPerfilMenu(false); setCuentaMenu(false); iniciar(CAPITULO_DE_TAB[tab] || 'primeros') }}>?</button>
+        <div style={{ position: 'relative' }}>
+          <button data-tour="perfil" className="pill" style={{ height: 34, border: 0, cursor: 'pointer', fontSize: 13, maxWidth: desktop ? 220 : 112, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }} aria-haspopup="menu" aria-expanded={perfilMenu} onClick={() => { setPerfilMenu(!perfilMenu); setCuentaMenu(false) }}>
             {perfil ? (perfil.tipo === 'personal' ? 'Personal' : perfil.nombre) : 'Sin perfil'} {Icon.chevron(14)}
           </button>
           {perfilMenu && <Desplegable onClose={() => setPerfilMenu(false)}><span className="section-label" style={{ padding: '4px 6px' }}>Ver el presupuesto de</span><ListaPerfiles onPick={() => setPerfilMenu(false)} /></Desplegable>}
         </div>
         <div style={{ position: 'relative' }}>
-          <button className="avatar" style={{ width: 38, height: 38, border: 0, cursor: 'pointer', background: 'var(--accent)', color: 'var(--on-accent)' }} aria-label="Tu cuenta" aria-haspopup="menu" aria-expanded={cuentaMenu} onClick={() => { setCuentaMenu(!cuentaMenu); setPerfilMenu(false) }}>{(me?.nombre || '?')[0]}</button>
+          <button data-tour="cuenta" className="avatar" style={{ width: 38, height: 38, border: 0, cursor: 'pointer', background: 'var(--accent)', color: 'var(--on-accent)' }} aria-label="Tu cuenta" aria-haspopup="menu" aria-expanded={cuentaMenu} onClick={() => { setCuentaMenu(!cuentaMenu); setPerfilMenu(false) }}>{(me?.nombre || '?')[0]}</button>
           {cuentaMenu && (
             <Desplegable onClose={() => setCuentaMenu(false)} ancho={290}>
               <div className="row" style={{ padding: '6px 6px 10px', borderBottom: '1px solid var(--border)' }}>
@@ -86,6 +90,7 @@ export default function Shell({ children }) {
                 <span className="col grow" style={{ gap: 1 }}><strong>{me?.nombre}</strong><span className="xs muted ellipsis">{me?.email}</span></span>
               </div>
               <button role="menuitem" className="navitem" onClick={() => { setCuentaMenu(false); ir('ajustes') }}>{Icon.edit(18)} Mi perfil y ajustes</button>
+              <button role="menuitem" className="navitem" onClick={() => { setCuentaMenu(false); ir('guia') }}><span style={{ width: 18, textAlign: 'center', fontWeight: 800 }}>?</span> Guía de uso</button>
               {me?.es_admin && <button role="menuitem" className="navitem" onClick={() => { setCuentaMenu(false); ir('admin') }}>{Icon.admin(18)} Administración</button>}
               <div className="col" style={{ gap: 6, padding: '6px 4px' }}>
                 <span className="xs bold muted">Tema</span>
@@ -102,7 +107,7 @@ export default function Shell({ children }) {
           <aside className="drawer" aria-label="Menú">
             <button className="row" style={{ border: 0, background: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }} onClick={() => ir('resumen')}><span className="logo">€</span><strong style={{ fontSize: 16 }}>Cuentas Claras</strong></button>
             <nav className="col" style={{ gap: 4 }} aria-label="Secciones">
-              {tabs.map(([k, t, ic]) => <button key={k} className="navitem" aria-current={tab === k ? 'page' : undefined} onClick={() => ir(k)}>{ic(20)}{t}</button>)}
+              {tabs.map(([k, t, ic]) => <button key={k} data-tour={"nav-" + k} className="navitem" aria-current={tab === k ? 'page' : undefined} onClick={() => ir(k)}>{ic(20)}{t}</button>)}
             </nav>
             <div className="row small muted" style={{ marginTop: 'auto', padding: '0 8px' }}>
               <span className="avatar" style={{ width: 30, height: 30, background: 'var(--accent)', color: 'var(--on-accent)', fontSize: 13 }}>{(me?.nombre || '?')[0]}</span>
@@ -116,8 +121,8 @@ export default function Shell({ children }) {
       <main className="main">{children}</main>
 
       {!desktop && (
-        <nav className="bottomnav" aria-label="Secciones">
-          {TABS.map(([k, t, ic]) => <button key={k} aria-current={tab === k || (k === 'ajustes' && tab === 'admin') ? 'page' : undefined} onClick={() => ir(k)}>{ic()}{t}</button>)}
+        <nav data-tour="nav" className="bottomnav" aria-label="Secciones">
+          {TABS.map(([k, t, ic]) => <button key={k} data-tour={'nav-' + k} aria-current={tab === k || (k === 'ajustes' && tab === 'admin') ? 'page' : undefined} onClick={() => ir(k)}>{ic()}{t}</button>)}
         </nav>
       )}
 

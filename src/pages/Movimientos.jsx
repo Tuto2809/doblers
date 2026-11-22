@@ -195,16 +195,16 @@ export default function Movimientos() {
             <h1>Movimientos</h1>
           </div>
           {!desktop && <div className="row" style={{ gap: 8 }}>
-            <button className="btn icon" aria-label="Importar extracto" onClick={() => setImportar(true)}>{Icon.down()}</button>
-            <button className="btn icon" aria-label="Exportar" onClick={() => setExp(true)}>{Icon.up()}</button>
+            <button data-tour="importar" className="btn icon" aria-label="Importar extracto" onClick={() => setImportar(true)}>{Icon.down()}</button>
+            <button data-tour="exportar" className="btn icon" aria-label="Exportar" onClick={() => setExp(true)}>{Icon.up()}</button>
           </div>}
         </div>
         <div className="row wrap" style={{ gap: 10 }}>
           <PeriodoSelector />
           {desktop && <>
-            <button className="btn" onClick={() => setImportar(true)}>{Icon.down()} Importar extracto</button>
-            <button className="btn" onClick={() => setExp(true)}>{Icon.up()} Exportar</button>
-            <button className="btn primary" onClick={() => setEditar('nuevo')}>{Icon.plus(18)} Añadir</button>
+            <button data-tour="importar" className="btn" onClick={() => setImportar(true)}>{Icon.down()} Importar extracto</button>
+            <button data-tour="exportar" className="btn" onClick={() => setExp(true)}>{Icon.up()} Exportar</button>
+            <button data-tour="nuevo-mov" className="btn primary" onClick={() => setEditar('nuevo')}>{Icon.plus(18)} Añadir</button>
           </>}
         </div>
       </header>
@@ -217,7 +217,7 @@ export default function Movimientos() {
 
       <div className={desktop ? 'split' : 'col'} style={{ gap: 16 }}>
         {desktop && <aside className="side card pad" aria-label="Filtros"><div className="row between" style={{ marginBottom: 14 }}><strong>Filtros</strong>{nF > 0 && <span className="pill">{nF} activos</span>}</div>{panelFiltros}</aside>}
-        <section className={desktop ? 'mainc card pad col' : 'col'} style={{ gap: 12 }}>
+        <section data-tour="lista-movs" className={desktop ? 'mainc card pad col' : 'col'} style={{ gap: 12 }}>
           <Toolbar onLimpiar={() => setF(VACIO)} ordenInicial={{ key: 'fecha', dir: -1 }} q={q} setQ={setQ} placeholder="Buscar en concepto, categoría, cuenta, etiqueta, importe…" nFiltros={nF} onFiltros={desktop ? null : () => setFiltrosAbiertos(true)} cols={cols} orden={orden} setOrden={setOrden} />
           {!desktop && (
             <div className="row" style={{ gap: 8, overflowX: 'auto' }}>
@@ -242,7 +242,7 @@ export default function Movimientos() {
         </section>
       </div>
 
-      {!desktop && <button className="btn primary" aria-label="Añadir movimiento" onClick={() => setEditar('nuevo')} style={{ position: 'fixed', right: 18, bottom: 96, width: 60, height: 60, borderRadius: 20, zIndex: 14, boxShadow: '0 8px 24px rgba(20,30,120,.3)' }}>{Icon.plus(26)}</button>}
+      {!desktop && <button data-tour="nuevo-mov" className="btn primary" aria-label="Añadir movimiento" onClick={() => setEditar('nuevo')} style={{ position: 'fixed', right: 18, bottom: 96, width: 60, height: 60, borderRadius: 20, zIndex: 14, boxShadow: '0 8px 24px rgba(20,30,120,.3)' }}>{Icon.plus(26)}</button>}
 
       {filtrosAbiertos && <Modal titulo="Filtrar" onClose={() => setFiltrosAbiertos(false)}>{panelFiltros}<button className="btn primary" style={{ height: 52 }} onClick={() => setFiltrosAbiertos(false)}>Ver {filtradas.length} movimientos</button></Modal>}
       {editar && <MovimientoForm mov={editar === 'nuevo' ? null : editar} cuentas={cuentas} onClose={() => setEditar(null)} />}

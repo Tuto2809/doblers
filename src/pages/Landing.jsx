@@ -165,9 +165,11 @@ export default function Landing({ ir }) {
         <div className="lp-wrap row between">
           <a href="/" className="row" style={{ gap: 10, color: 'inherit', textDecoration: 'none' }}><span className="logo" style={{ width: 34, height: 34, fontSize: 17, borderRadius: 10 }}>€</span><strong style={{ fontSize: 17 }}>Cuentas Claras</strong></a>
           <nav className="row lp-links" style={{ gap: 22 }}>
+            <a href="#video" onClick={a('video')}>Vídeo</a>
             <a href="#simula" onClick={a('simula')}>Simula tu mes</a>
             <a href="#funciones" onClick={a('funciones')}>Funciones</a>
             <a href="#como" onClick={a('como')}>Cómo empezar</a>
+            <a href="/demo?guia">Guía</a>
             <a href="/demo">Demo</a>
           </nav>
           <div className="row" style={{ gap: 8 }}>
@@ -198,6 +200,13 @@ export default function Landing({ ir }) {
           {[[12, ' meses', 'de previsión de liquidez'], [3, ' clics', 'para importar el extracto del banco'], [100, ' %', 'privado: ni el administrador ve tus datos']].map(([n, u, t], i) => (
             <Reveal key={t} delay={i * 120} className="lp-stat"><strong><StatNum n={n} />{u}</strong><span>{t}</span></Reveal>
           ))}
+        </div>
+      </section>
+
+      <section id="video" className="lp-sec" style={{ paddingBottom: 30 }}>
+        <div className="lp-wrap col" style={{ gap: 26, alignItems: 'center' }}>
+          <Reveal className="col lp-sec-head" style={{ alignItems: 'center', textAlign: 'center' }}><span className="lp-eyebrow" style={{ alignSelf: 'center' }}>En 40 segundos</span><h2>Mira cómo funciona</h2></Reveal>
+          <Reveal delay={100} className="lp-video"><VideoPortada /></Reveal>
         </div>
       </section>
 
@@ -266,4 +275,15 @@ function StatNum({ n }) {
   const [go, setGo] = useState(false)
   useEffect(() => { const el = ref.current; if (!el || !('IntersectionObserver' in window)) { setGo(true); return } const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setGo(true); io.disconnect() } }); io.observe(el); return () => io.disconnect() }, [])
   return <span ref={ref}><Cuenta valor={go ? n : 0} dur={1300} fmt={v => String(Math.round(v))} /></span>
+}
+
+// Vídeo de presentación: se reproduce solo (sin sonido) al aparecer en pantalla
+function VideoPortada() {
+  const ref = useRef(null)
+  useEffect(() => {
+    const v = ref.current; if (!v || !('IntersectionObserver' in window)) return
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) v.play().catch(() => {}); else v.pause() }, { threshold: 0.4 })
+    io.observe(v); return () => io.disconnect()
+  }, [])
+  return <video ref={ref} src="/guia/portada.mp4" poster="/guia/portada.jpg" muted loop playsInline controls preload="metadata" aria-label="Vídeo de presentación de Cuentas Claras" />
 }

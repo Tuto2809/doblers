@@ -71,7 +71,7 @@ export function PeriodoSelector({ compacto }) {
       onChange={t => { setPeriodo(cambiarTipo(periodo, t)); if (t === 'pers') setAbierto(true) }} />
   )
   const nav = (
-    <div className="row card" style={{ padding: 3, borderRadius: 14, gap: 0, justifyContent: 'space-between', flex: desktop ? 'none' : 1 }}>
+    <div data-tour="periodo" className="row card" style={{ padding: 3, borderRadius: 14, gap: 0, justifyContent: 'space-between', flex: desktop ? 'none' : 1 }}>
       <button className="btn icon" style={{ border: 0, background: 'none' }} aria-label="Periodo anterior" onClick={() => setPeriodo(mover(periodo, -1))}>{Icon.left()}</button>
       <button className="btn" style={{ border: 0, background: 'none', padding: '0 8px' }} onClick={() => setAbierto(true)}>{etiqueta(periodo)} {Icon.chevron()}</button>
       <button className="btn icon" style={{ border: 0, background: 'none' }} aria-label="Periodo siguiente" onClick={() => setPeriodo(mover(periodo, 1))}>{Icon.right()}</button>

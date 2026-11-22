@@ -5,6 +5,8 @@ import Shell from './components/Shell'
 import { Cargando, Toast } from './components/ui'
 import Login from './pages/Login'
 import Landing from './pages/Landing'
+import Guia from './pages/Guia'
+import { TourProvider, useTour } from './components/Tour'
 import Resumen from './pages/Resumen'
 import Movimientos from './pages/Movimientos'
 import Presupuesto from './pages/Presupuesto'
@@ -35,6 +37,14 @@ function useRegistroConexion(me) {
 function Contenido() {
   const { me, cargando, error, tab, perfil, misPerfiles } = useApp()
   useRegistroConexion(me)
+  const { setTab } = useApp()
+  const { iniciar } = useTour()
+  useEffect(() => {
+    // Enlaces directos: ?guia abre la página de la guía y ?tour=<capítulo> lanza un recorrido
+    const q = new URLSearchParams(location.search)
+    if (q.has('guia')) setTab('guia')
+    if (q.get('tour') && me?.activo) setTimeout(() => iniciar(q.get('tour')), 600)
+  }, [me?.activo]) // eslint-disable-line
   useEffect(() => { localStorage.setItem('pf-tema-cache', document.documentElement.dataset.theme || 'claro') })
   if (error) return <div className="login"><div className="col" style={{ maxWidth: 420 }}><h1>Algo ha fallado</h1><div className="error">{error}</div><button className="btn" onClick={() => location.reload()}>Reintentar</button></div></div>
   if (!me && cargando) return <Cargando />
@@ -48,7 +58,8 @@ function Contenido() {
       </div></div>
     )
   }
-  const pagina = tab === 'admin' && me.es_admin ? <Admin />
+  const pagina = tab === 'guia' ? <Guia />
+    : tab === 'admin' && me.es_admin ? <Admin />
     : tab === 'ajustes' ? <Ajustes />
     : !perfil && !cargando ? <div className="empty">{misPerfiles.length ? 'Elige un perfil.' : 'Todavía no perteneces a ningún perfil.'}</div>
     : tab === 'movimientos' ? <Movimientos />
@@ -91,5 +102,5 @@ export default function App() {
     if (ruta === 'inicio') return <Landing ir={ir} />
     return <Login key={ruta} inicial={ruta} onInicio={() => ir('inicio')} />
   }
-  return <AppProvider key={session.user.id} session={session}><Contenido />{esDemo && <BandaDemo />}</AppProvider>
+  return <AppProvider key={session.user.id} session={session}><TourProvider><Contenido />{esDemo && <BandaDemo />}</TourProvider></AppProvider>
 }

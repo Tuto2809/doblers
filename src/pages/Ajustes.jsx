@@ -122,10 +122,10 @@ export default function Ajustes() {
           </section>
         </div>
 
-        <section className={desktop ? 'c2 card pad col' : 'col'} style={{ gap: 12 }}>
+        <section data-tour="categorias-ajustes" className={desktop ? 'c2 card pad col' : 'col'} style={{ gap: 12 }}>
           <div className="row between">
             <h2>Categorías · {nombrePerfil(perfil)}</h2>
-            <button className="btn sm primary" onClick={() => setEditCat('nueva')}>{Icon.plus(16)} Categoría</button>
+            <button data-tour="nueva-cat" className="btn sm primary" onClick={() => setEditCat('nueva')}>{Icon.plus(16)} Categoría</button>
           </div>
           <Toolbar ordenInicial={{ key: 'nombre', dir: 1 }} q={q} setQ={setQ} placeholder="Buscar categoría" cols={cols} orden={orden} setOrden={setOrden} />
           {desktop && <div className="row small muted" style={{ gap: 6 }}>{Icon.sort()} Ordenar por {cols.map(c => <button key={c.key} className="chip" style={{ height: 30 }} aria-pressed={orden.key === c.key} onClick={() => ordenar(c.key)}>{c.label}{orden.key === c.key ? (orden.dir > 0 ? ' ↑' : ' ↓') : ''}</button>)}</div>}

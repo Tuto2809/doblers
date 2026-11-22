@@ -193,15 +193,15 @@ export default function Presupuesto() {
       <header className={desktop ? 'row wrap between' : 'col'} style={{ gap: 14 }}>
         <div className="row between"><h1>Presupuesto</h1>
           {!desktop && <div className="row" style={{ gap: 8 }}>
-            <button className="btn icon" aria-label="Importar Excel" onClick={() => setImportar(true)}>{Icon.down()}</button>
-            <button className="btn icon" aria-label="Exportar" onClick={() => setExp(true)}>{Icon.up()}</button>
+            <button data-tour="importar-pres" className="btn icon" aria-label="Importar Excel" onClick={() => setImportar(true)}>{Icon.down()}</button>
+            <button data-tour="exportar" className="btn icon" aria-label="Exportar" onClick={() => setExp(true)}>{Icon.up()}</button>
           </div>}
         </div>
         <div className="row wrap" style={{ gap: 10 }}>
           <PeriodoSelector />
           {desktop && <>
-            <button className="btn" onClick={() => setImportar(true)}>{Icon.down()} Importar Excel</button>
-            <button className="btn" onClick={() => setExp(true)}>{Icon.up()} Exportar</button>
+            <button data-tour="importar-pres" className="btn" onClick={() => setImportar(true)}>{Icon.down()} Importar Excel</button>
+            <button data-tour="exportar" className="btn" onClick={() => setExp(true)}>{Icon.up()} Exportar</button>
           </>}
         </div>
       </header>
@@ -210,15 +210,15 @@ export default function Presupuesto() {
         {kpis.map(([l, v, s]) => <div key={l} className="card" style={{ padding: '12px 14px' }}><div className="xs muted">{l}</div><strong style={{ fontSize: desktop ? 22 : 18 }}>{v}</strong><div className="xs muted">{s}</div></div>)}
       </div>
 
-      <section className={desktop ? 'card pad col' : 'col'} style={{ gap: 12 }}>
+      <section data-tour="rejilla" className={desktop ? 'card pad col' : 'col'} style={{ gap: 12 }}>
         <div className="row wrap between" style={{ gap: 10 }}>
           <h2>{desktop ? `Año ${anyo} por meses` : `Categorías · ${etiqueta(periodo)}`}</h2>
           <div className="row wrap" style={{ gap: 8 }}>
             {desktop && <Seg label="Qué mostrar" valor={vista} onChange={v => { setVista(v); if (v !== 'pres') { setEditando(false); setBorrador({}) } }} opciones={[['pres', 'Presupuesto'], ['real', 'Real'], ['dif', 'Diferencia']]} />}
-            <button className="btn sm" onClick={copiarAnterior}>Copiar {anyo - 1}</button>
+            <button data-tour="copiar-anyo" className="btn sm" onClick={copiarAnterior}>Copiar {anyo - 1}</button>
             {desktop && (editando
               ? <><button className="btn sm" onClick={() => { setBorrador({}); setEditando(false) }}>Cancelar</button><button className="btn sm primary" disabled={busy} onClick={guardarRejilla}>Guardar</button></>
-              : <button className="btn sm primary" onClick={() => { setVista('pres'); setEditando(true) }}>{Icon.edit(16)} Editar</button>)}
+              : <button data-tour="editar-rejilla" className="btn sm primary" onClick={() => { setVista('pres'); setEditando(true) }}>{Icon.edit(16)} Editar</button>)}
           </div>
         </div>
         <Toolbar ordenInicial={{ key: 'nombre', dir: 1 }} q={q} setQ={setQ} placeholder="Buscar categoría" cols={cols} orden={orden} setOrden={setOrden} />

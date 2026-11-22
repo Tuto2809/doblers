@@ -71,7 +71,7 @@ export default function Liquidez({ anyo, idx: idxProp, modoInicial = 'mixto' }) 
   const etiq = m => (m.fuente === 'real' ? 'Real' : m.fuente === 'actual' ? 'En curso' : 'Previsto')
 
   return (
-    <section className={'card ' + (desktop ? 'pad20' : 'pad') + ' col'} style={{ gap: 14 }}>
+    <section data-tour="liquidez" className={'card ' + (desktop ? 'pad20' : 'pad') + ' col'} style={{ gap: 14 }}>
       <div className="row wrap between" style={{ gap: 10 }}>
         <h2>Liquidez {anyo}</h2>
         <Seg label="Cálculo" valor={modo} onChange={setModo} opciones={[['mixto', 'Real + previsto'], ['pres', 'Solo presupuesto']]} />

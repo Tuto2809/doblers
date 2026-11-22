@@ -6,6 +6,7 @@ import { nombrePerfil, SubPerfil } from '../components/Shell'
 import { ajustesDe, enRango, liquidez, porCategoria, prevision, presupuestoRango, tipoDe, totales, valor } from '../lib/calc'
 import Liquidez from '../components/Liquidez'
 import DetalleMovs from '../components/DetalleMovs'
+import { useTour } from '../components/Tour'
 import { etiqueta, rango } from '../lib/period'
 import { MESES, MES_CORTO, cap, fmt0, hoyIso, iso, pct } from '../lib/format'
 import { exportarHojas, exportarTodo } from '../lib/exporters'
@@ -89,6 +90,10 @@ export default function Resumen() {
   function irMovs(f) { setFiltroInicial(f); setTab('movimientos'); window.scrollTo({ top: 0 }) }
   // Abre el detalle en una ventana encima del Resumen, sin perder dónde estabas
   const [detalle, setDetalle] = useState(null)
+  const { iniciar: iniciarGuia, activo: guiaActiva } = useTour()
+  const claveOferta = 'pf-guia-oferta-' + (me?.id || '')
+  const [oferta, setOferta] = useState(() => { try { return !localStorage.getItem(claveOferta) } catch { return false } })
+  const quitarOferta = () => { setOferta(false); try { localStorage.setItem(claveOferta, '1') } catch {} }
   const verCat = f => setDetalle({ titulo: f.cat.nombre, subtitulo: `${f.cat.tipo === 'ingreso' ? 'Ingresos' : 'Gastos'} · ${etiqueta(periodo)}`, filtro: { cat: f.cat.id, desde, hasta }, presupuesto: f.presupuesto, abrir: { cat: f.cat.id } })
   const verSinCat = () => setDetalle({ titulo: 'Sin categoría', subtitulo: etiqueta(periodo), filtro: { cat: '__sin', desde, hasta }, abrir: { cat: '__sin' } })
   function verMes(m) {
@@ -163,7 +168,7 @@ export default function Resumen() {
 
   const overTip = m => serie === 'gasto' ? m.presGasto > 0 && m.gastos > m.presGasto : false
   const grafico = (
-    <section className={'card ' + (desktop ? 'pad20' : 'pad') + ' col'} style={{ gap: 12 }}>
+    <section data-tour="grafico" className={'card ' + (desktop ? 'pad20' : 'pad') + ' col'} style={{ gap: 12 }}>
       <div className="row wrap between">
         <h2>{serie === 'gasto' ? 'Gastos' : serie === 'ingreso' ? 'Ingresos' : 'Balance'} por mes · {anyoG}</h2>
         {!vistaGeneral && <button className="btn sm" onClick={() => { setSerie('gasto'); setMesSel(null); setQ('') }}>{Icon.close(14)} Vista general</button>}
@@ -223,7 +228,7 @@ export default function Resumen() {
     </div>
   )
   const avisos = (
-    <section className={'col' + (desktop ? ' card pad20' : '')} style={{ gap: 10 }}>
+    <section data-tour="avisos" className={'col' + (desktop ? ' card pad20' : '')} style={{ gap: 10 }}>
       <h2>Requiere atención</h2>
       {pendientesA.length ? (
         <div className={desktop ? 'col' : 'list'} style={{ gap: 8 }}>{pendientesA.map(a => filaAviso(a, false))}</div>
@@ -242,10 +247,10 @@ export default function Resumen() {
       <div className="row between"><div className="col" style={{ gap: 2 }}>
         <span className="small muted">{perfil?.tipo === 'personal' ? `Hola, ${me.nombre}` : <>{nombrePerfil(perfil)} · <SubPerfil p={perfil} /></>}</span>
         <h1>Resumen</h1>
-      </div>{!desktop && <button className="btn icon" aria-label="Exportar" onClick={() => setExp(true)}>{Icon.up()}</button>}</div>
+      </div>{!desktop && <button data-tour="exportar" className="btn icon" aria-label="Exportar" onClick={() => setExp(true)}>{Icon.up()}</button>}</div>
       <div className="row wrap" style={{ gap: 10 }}>
         <PeriodoSelector />
-        {desktop && <button className="btn" onClick={() => setExp(true)}>{Icon.up()} Exportar</button>}
+        {desktop && <button data-tour="exportar" className="btn" onClick={() => setExp(true)}>{Icon.up()} Exportar</button>}
       </div>
     </header>
   )
@@ -253,8 +258,16 @@ export default function Resumen() {
   return (
     <>
       {cabecera}
-      <div className="kpis">
-        <button className="hero" aria-pressed={serie === 'gasto'} onClick={() => setSerie('gasto')}>
+      {oferta && !guiaActiva && (
+        <div className="guia-oferta" role="status">
+          <span style={{ fontSize: 26 }}>👋</span>
+          <span className="col grow" style={{ gap: 2, minWidth: 180 }}><strong>¿Te enseño la app en 2 minutos?</strong><span className="small muted">Un recorrido guiado sobre la propia pantalla. Lo puedes repetir cuando quieras con el botón ?.</span></span>
+          <button className="btn sm primary" onClick={() => { quitarOferta(); iniciarGuia('primeros') }}>Empezar</button>
+          <button className="btn sm ghost" onClick={quitarOferta}>Ahora no</button>
+        </div>
+      )}
+      <div className="kpis" data-tour="kpis">
+        <button data-tour="kpi-gasto" className="hero" aria-pressed={serie === 'gasto'} onClick={() => setSerie('gasto')}>
           <span className="small" style={{ opacity: 0.9, fontWeight: 500 }}>{periodo.tipo === 'mes' ? 'Gastado este mes' : periodo.tipo === 'ano' ? `Gastado en ${periodo.anyo}` : 'Gastado en el periodo'}</span>
           <span className="row" style={{ alignItems: 'baseline', gap: 8 }}><span className="big">{fmt0(tot.gastos)}</span>{presGasto > 0 && <span style={{ opacity: 0.9 }}>de {fmt0(presGasto)}</span>}</span>
           {presGasto > 0 && <span className="track"><span style={{ width: Math.min(100, (tot.gastos / presGasto) * 100) + '%' }} /></span>}
@@ -264,7 +277,7 @@ export default function Resumen() {
           </span>
         </button>
         {kpis.map(([k, l, v, s]) => (
-          <button key={k} className="kpi" aria-pressed={serie === k} onClick={() => setSerie(serie === k ? 'gasto' : k)}>
+          <button key={k} data-tour={"kpi-" + k} className="kpi" aria-pressed={serie === k} onClick={() => setSerie(serie === k ? 'gasto' : k)}>
             <span className="small muted">{l}</span><span className="v">{v}</span><span className="xs muted">{s}</span>
           </button>
         ))}
@@ -298,7 +311,7 @@ export default function Resumen() {
         )
       })()}
 
-      <section className={'col' + (desktop ? ' card pad20' : '')} style={{ gap: 12 }}>
+      <section data-tour="categorias" className={'col' + (desktop ? ' card pad20' : '')} style={{ gap: 12 }}>
         <div className="row wrap between">
           <h2>Por categoría · {tipoTabla === 'gasto' ? 'Gastos' : 'Ingresos'}</h2>
           {serie !== 'gasto' && <button className="btn sm" onClick={() => setSerie('gasto')}>{Icon.close(14)} Ver gastos</button>}
