@@ -180,8 +180,9 @@ table.t thead th { font-size: 11px; color: var(--muted); font-weight: 600; text-
 
 /* Cabeceras fijas al hacer scroll y tablas que caben sin scroll lateral */
 .desktop { --topbar-h: 68px; }
-.desktop .tablewrap { overflow: visible; }
-.desktop table.t thead th { position: sticky; top: var(--topbar-h); z-index: 3; background: var(--surface); padding-top: 8px; box-shadow: 0 1px 0 var(--border); }
+/* Escritorio: las listas largas tienen scroll interno y la cabecera queda siempre a la vista */
+.desktop .tablewrap { overflow: auto; max-height: max(320px, calc(100vh - var(--topbar-h) - 260px)); overscroll-behavior: contain; scrollbar-gutter: stable; }
+.desktop table.t thead th { position: sticky; top: 0; z-index: 3; background: var(--surface); padding-top: 8px; border-bottom: 0; box-shadow: inset 0 -1px 0 var(--border); }
 table.grid { table-layout: fixed; width: 100%; font-variant-numeric: tabular-nums; }
 table.grid th, table.grid td { padding: 7px 3px; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 table.grid thead th button { font-size: 10.5px; letter-spacing: .02em; }
