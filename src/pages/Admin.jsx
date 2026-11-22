@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useApp } from '../store'
-import { supabase } from '../lib/supabase'
+import { supabase, SUPABASE_URL, SUPABASE_KEY } from '../lib/supabase'
 import { Icon, Modal, Th, Toolbar, buscar, useOrden } from '../components/ui'
 
 async function llamarFuncion(cuerpo) {
   const { data: { session } } = await supabase.auth.getSession()
-  const r = await fetch(import.meta.env.VITE_SUPABASE_URL + '/functions/v1/pf-admin', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_KEY, Authorization: 'Bearer ' + session.access_token }, body: JSON.stringify(cuerpo) })
+  const r = await fetch(SUPABASE_URL + '/functions/v1/pf-admin', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: 'Bearer ' + session.access_token }, body: JSON.stringify(cuerpo) })
   const txt = await r.text()
   let j = {}
   try { j = JSON.parse(txt) } catch { j = { error: txt || r.statusText } }
