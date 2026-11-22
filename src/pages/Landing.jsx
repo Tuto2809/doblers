@@ -205,7 +205,7 @@ export default function Landing({ ir }) {
 
       <section id="video" className="lp-sec" style={{ paddingBottom: 30 }}>
         <div className="lp-wrap col" style={{ gap: 26, alignItems: 'center' }}>
-          <Reveal className="col lp-sec-head" style={{ alignItems: 'center', textAlign: 'center' }}><span className="lp-eyebrow" style={{ alignSelf: 'center' }}>En 40 segundos</span><h2>Mira cómo funciona</h2></Reveal>
+          <Reveal className="col lp-sec-head" style={{ alignItems: 'center', textAlign: 'center' }}><span className="lp-eyebrow" style={{ alignSelf: 'center' }}>En 45 segundos</span><h2>Mira cómo funciona</h2></Reveal>
           <VideoPortada />
         </div>
       </section>
@@ -285,9 +285,12 @@ function VideoPortada() {
     const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) v.play().catch(() => {}); else v.pause() }, { threshold: 0.4 })
     io.observe(v); return () => io.disconnect()
   }, [])
+  const [mudo, setMudo] = useState(true)
+  useEffect(() => { const v = ref.current; if (!v) return; const h = () => setMudo(v.muted); v.addEventListener('volumechange', h); return () => v.removeEventListener('volumechange', h) }, [])
+  const sonido = () => { const v = ref.current; if (!v) return; v.muted = !v.muted; if (!v.muted) { if (v.currentTime > 1 && v.paused === false) v.currentTime = 0; v.play().catch(() => {}) } }
   const completa = () => {
     const v = ref.current; if (!v) return
-    v.muted = true; v.play().catch(() => {})
+    v.muted = false; v.currentTime = 0; v.play().catch(() => {})
     if (v.requestFullscreen) v.requestFullscreen().catch(() => {})
     else if (v.webkitEnterFullscreen) v.webkitEnterFullscreen() // iPhone
     else if (v.webkitRequestFullscreen) v.webkitRequestFullscreen()
@@ -297,7 +300,10 @@ function VideoPortada() {
       <Reveal delay={100} className="lp-video">
         <video ref={ref} src="/guia/portada.mp4" poster="/guia/portada.jpg" muted loop playsInline controls preload="metadata" aria-label="Vídeo de presentación de Cuentas Claras" onDoubleClick={completa} />
       </Reveal>
-      <button className="btn lp-fs" onClick={completa}>⛶ Ver a pantalla completa</button>
+      <div className="row wrap" style={{ gap: 10, justifyContent: 'center' }}>
+        <button className="btn lp-fs" onClick={sonido}>{mudo ? '🔊 Escuchar con sonido' : '🔇 Silenciar'}</button>
+        <button className="btn lp-fs" onClick={completa}>⛶ Ver a pantalla completa</button>
+      </div>
     </>
   )
 }
