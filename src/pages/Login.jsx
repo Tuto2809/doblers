@@ -20,7 +20,7 @@ export default function Login({ recuperar, onListo, inicial = 'entrar', onInicio
   const olvido = async () => {
     setErr(null)
     if (!email.trim()) { setErr('Escribe tu email y vuelve a pulsar.'); return }
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: location.origin })
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: location.origin + '/' })
     if (error) setErr(error.message); else setMsg('Si el email existe, recibirás un enlace para cambiar la contraseña. También puedes pedir al administrador una contraseña temporal.')
   }
   const nueva = async e => {
