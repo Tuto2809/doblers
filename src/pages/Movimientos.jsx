@@ -11,6 +11,19 @@ import ImportarExtracto from './ImportarExtracto'
 
 const VACIO = { tipo: 'todos', cats: [], cuentas: [], tags: [], min: '', max: '' }
 
+// Desplegable de filtro (fuera del componente para no perder el foco al escribir)
+function Despl({ id, label, n, children, ancho = 320, abierto, setAbierto }) {
+  return (
+    <div style={{ position: 'relative' }}>
+      <button className={'chip' + (n ? ' on' : '')} aria-pressed={!!n} aria-expanded={abierto === id} onClick={() => setAbierto(abierto === id ? null : id)}>{label}{n ? ` · ${n}` : ''} ▾</button>
+      {abierto === id && <>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 30 }} onClick={() => setAbierto(null)} />
+        <div className="card pad col" style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 31, width: ancho, gap: 10, boxShadow: '0 14px 40px rgba(20,25,60,.18)' }}>{children}</div>
+      </>}
+    </div>
+  )
+}
+
 export default function Movimientos() {
   const app = useApp()
   const { desktop, perfil, categorias, cmap, movimientos, presupuestos, idxPres, periodo, filtroInicial, setFiltroInicial, setToast, recargar } = app
@@ -59,7 +72,6 @@ export default function Movimientos() {
     { key: 'fecha', label: 'Fecha' },
     { key: 'concepto', label: 'Concepto', asc: true },
     { key: 'categoria', label: 'Categoría', get: m => cmap[m.categoria_id]?.nombre || '', asc: true },
-    { key: 'cuenta', label: 'Cuenta', asc: true },
     { key: 'etiquetas', label: 'Etiquetas', get: m => (m.etiquetas || []).join(', '), asc: true },
     { key: 'importe', label: 'Importe' },
   ], [cmap])
@@ -99,6 +111,44 @@ export default function Movimientos() {
     ]
     exportarHojas(perfil, 'movimientos ' + etiqueta(periodo), [hojaMovimientos(ordenadas, cmap), { name: 'Filtros aplicados', rows: [['Filtro', 'Valor'], ...filtrosTxt] }])
   }
+
+  // Barra de filtros encima de la lista (escritorio): desplegables compactos
+  const [abierto, setAbierto] = useState(null)
+  const [qCat, setQCat] = useState('')
+  const nombreCat = id => (id === '__sin' ? 'Sin categoría' : cmap[id]?.nombre || '?')
+  const barraFiltros = (
+    <div className="col" style={{ gap: 8 }}>
+      <div className="row wrap" style={{ gap: 8, alignItems: 'center' }}>
+        {[['todos', 'Todos'], ['gasto', 'Gastos'], ['ingreso', 'Ingresos']].map(([v, t]) => <button key={v} className="chip" aria-pressed={f.tipo === v} onClick={() => setF({ ...f, tipo: v })}>{t}</button>)}
+        <span style={{ width: 1, height: 24, background: 'var(--border)', margin: '0 4px' }} />
+        <Despl abierto={abierto} setAbierto={setAbierto} id="cats" label="Categorías" n={f.cats.length} ancho={360}>
+          <input className="input" autoFocus placeholder="Buscar categoría…" value={qCat} onChange={e => setQCat(e.target.value)} style={{ height: 38 }} />
+          <div className="row wrap" style={{ gap: 6, maxHeight: 300, overflow: 'auto' }}>
+            {[...categorias.map(c => [c.id, c.nombre]), ['__sin', 'Sin categoría']].filter(([, n]) => !qCat || n.toLowerCase().includes(qCat.toLowerCase())).map(([id, n]) => <button key={id} className="chip" aria-pressed={f.cats.includes(id)} onClick={() => toggle('cats', id)}>{n}</button>)}
+          </div>
+          {f.cats.length > 0 && <button className="btn sm ghost" style={{ alignSelf: 'flex-start' }} onClick={() => setF({ ...f, cats: [] })}>Quitar categorías</button>}
+        </Despl>
+        {tags.length > 0 && <Despl abierto={abierto} setAbierto={setAbierto} id="tags" label="Etiquetas" n={f.tags.length}>
+          <div className="row wrap" style={{ gap: 6, maxHeight: 300, overflow: 'auto' }}>{tags.map(c => <button key={c} className="chip" aria-pressed={f.tags.includes(c)} onClick={() => toggle('tags', c)}>{c}</button>)}</div>
+        </Despl>}
+        {cuentas.length > 1 && <Despl abierto={abierto} setAbierto={setAbierto} id="cuentas" label="Cuenta" n={f.cuentas.length}>
+          <div className="row wrap" style={{ gap: 6 }}>{cuentas.map(c => <button key={c} className="chip" aria-pressed={f.cuentas.includes(c)} onClick={() => toggle('cuentas', c)}>{c}</button>)}</div>
+        </Despl>}
+        <Despl abierto={abierto} setAbierto={setAbierto} id="importe" label="Importe" n={(f.min ? 1 : 0) + (f.max ? 1 : 0)} ancho={300}>
+          <div className="row" style={{ gap: 8 }}>
+            <label className="field grow">Mín. (€)<input className="input" inputMode="decimal" value={f.min} onChange={e => setF({ ...f, min: e.target.value })} placeholder="0" /></label>
+            <label className="field grow">Máx. (€)<input className="input" inputMode="decimal" value={f.max} onChange={e => setF({ ...f, max: e.target.value })} placeholder="Sin límite" /></label>
+          </div>
+        </Despl>
+        {nF > 0 && <button className="btn sm ghost" onClick={() => setF(VACIO)}>Limpiar filtros</button>}
+      </div>
+      {f.cats.length > 0 && (
+        <div className="row wrap" style={{ gap: 6 }}>
+          {f.cats.map(id => <button key={id} className="pill" style={{ border: 0, cursor: 'pointer' }} onClick={() => toggle('cats', id)} title="Quitar">{nombreCat(id)} ✕</button>)}
+        </div>
+      )}
+    </div>
+  )
 
   const panelFiltros = (
     <div className="col" style={{ gap: 18 }}>
@@ -163,7 +213,8 @@ export default function Movimientos() {
 
   const tabla = (
     <div className="tablewrap">
-      <table className="t" style={{ minWidth: desktop ? 0 : 820 }}>
+      <table className="t" style={{ minWidth: desktop ? 0 : 820, tableLayout: 'fixed', width: '100%' }}>
+        <colgroup><col style={{ width: 44 }} /><col style={{ width: 118 }} /><col /><col style={{ width: '20%' }} /><col style={{ width: '15%' }} /><col style={{ width: 130 }} /></colgroup>
         <thead><tr>
           <th style={{ width: 36 }}><input type="checkbox" aria-label="Seleccionar todos" checked={todosSel} onChange={() => setSel(todosSel ? {} : Object.fromEntries(visibles.map(m => [m.id, true])))} style={{ width: 18, height: 18, accentColor: 'var(--accent)' }} /></th>
           {cols.map(c => <Th key={c.key} col={c} orden={orden} ordenar={ordenar} className={c.key === 'importe' ? 'num' : ''} />)}
@@ -173,14 +224,13 @@ export default function Movimientos() {
             <tr key={m.id} className={'clickable' + (sel[m.id] ? ' sel' : '')} onClick={() => setEditar(m)}>
               <td onClick={e => e.stopPropagation()}><input type="checkbox" aria-label={'Seleccionar ' + m.concepto} checked={!!sel[m.id]} onChange={() => setSel(s => ({ ...s, [m.id]: !s[m.id] }))} style={{ width: 18, height: 18, accentColor: 'var(--accent)' }} /></td>
               <td className="muted nowrap">{fechaCorta(m.fecha)}</td>
-              <td className="bold" style={{ maxWidth: 320 }}><span className="ellipsis" style={{ display: 'block' }}>{m.concepto || '(sin concepto)'}</span></td>
-              <td>{catTag(m)}</td>
-              <td className="muted">{m.cuenta || '—'}</td>
-              <td className="muted">{(m.etiquetas || []).join(', ') || '—'}</td>
+              <td className="bold"><span className="ellipsis" style={{ display: 'block' }} title={m.concepto}>{m.concepto || '(sin concepto)'}</span></td>
+              <td style={{ overflow: 'hidden' }}>{catTag(m)}</td>
+              <td className="muted"><span className="ellipsis" style={{ display: 'block' }}>{(m.etiquetas || []).join(', ') || '—'}</span></td>
               <td className={'num bold' + (m.importe > 0 ? ' ok' : '')}>{signed2(m.importe)}</td>
             </tr>
           ))}
-          {!visibles.length && <tr><td colSpan={7} className="empty">No hay movimientos con estos criterios.</td></tr>}
+          {!visibles.length && <tr><td colSpan={6} className="empty">No hay movimientos con estos criterios.</td></tr>}
         </tbody>
       </table>
     </div>
@@ -215,10 +265,10 @@ export default function Movimientos() {
         ))}
       </div>
 
-      <div className={desktop ? 'split' : 'col'} style={{ gap: 16 }}>
-        {desktop && <aside className="side card pad" aria-label="Filtros"><div className="row between" style={{ marginBottom: 14 }}><strong>Filtros</strong>{nF > 0 && <span className="pill">{nF} activos</span>}</div>{panelFiltros}</aside>}
-        <section data-tour="lista-movs" className={desktop ? 'mainc card pad col' : 'col'} style={{ gap: 12 }}>
-          <Toolbar onLimpiar={() => setF(VACIO)} ordenInicial={{ key: 'fecha', dir: -1 }} q={q} setQ={setQ} placeholder="Buscar en concepto, categoría, cuenta, etiqueta, importe…" nFiltros={nF} onFiltros={desktop ? null : () => setFiltrosAbiertos(true)} cols={cols} orden={orden} setOrden={setOrden} />
+      <div className="col" style={{ gap: 16 }}>
+        <section data-tour="lista-movs" className={desktop ? 'card pad col' : 'col'} style={{ gap: 12 }}>
+          {desktop && barraFiltros}
+          <Toolbar onLimpiar={() => setF(VACIO)} ordenInicial={{ key: 'fecha', dir: -1 }} q={q} setQ={setQ} placeholder="Buscar en concepto, categoría, etiqueta, importe…" nFiltros={nF} onFiltros={desktop ? null : () => setFiltrosAbiertos(true)} cols={cols} orden={orden} setOrden={setOrden} />
           {!desktop && (
             <div className="row" style={{ gap: 8, overflowX: 'auto' }}>
               {[['todos', 'Todos'], ['gasto', 'Gastos'], ['ingreso', 'Ingresos']].map(([v, t]) => <button key={v} className="chip" aria-pressed={f.tipo === v && !f.cats.includes('__sin')} onClick={() => setF({ ...f, tipo: v, cats: f.cats.filter(c => c !== '__sin') })}>{t}</button>)}
