@@ -88,7 +88,16 @@ export default function ImportarExtracto({ onClose }) {
     const rows = hojas[hoja].rows
     // Movimientos ya apuntados, por importe: se emparejan uno a uno con fecha a ±3 días
     const porImporte = {}
-    for (const m of movimientos) (porImporte[Number(m.importe).toFixed(2)] ||= []).push({ m, t: new Date(m.fecha).getTime(), usado: false })
+    // Un movimiento dividido en partes cuenta como uno solo con su importe original
+    const vistos = new Set()
+    for (const m of movimientos) {
+      if (m.division_id) {
+        if (vistos.has(m.division_id)) continue
+        vistos.add(m.division_id)
+        const imp = m.importe_original ?? m.importe
+        ;(porImporte[Number(imp).toFixed(2)] ||= []).push({ m: { ...m, importe: imp, concepto: m.concepto_original || m.concepto }, t: new Date(m.fecha).getTime(), usado: false })
+      } else (porImporte[Number(m.importe).toFixed(2)] ||= []).push({ m, t: new Date(m.fecha).getTime(), usado: false })
+    }
     const emparejar = (fecha, imp) => {
       const lista = porImporte[imp.toFixed(2)]
       if (!lista) return null

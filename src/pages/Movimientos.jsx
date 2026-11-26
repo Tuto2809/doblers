@@ -48,6 +48,7 @@ export default function Movimientos() {
 
   const { desde, hasta } = rango(periodo)
   const delPeriodo = useMemo(() => enRango(movimientos, desde, hasta), [movimientos, desde, hasta])
+  const divN = useMemo(() => { const o = {}; for (const m of movimientos) if (m.division_id) o[m.division_id] = (o[m.division_id] || 0) + 1; return o }, [movimientos])
   const cuentas = useMemo(() => [...new Set(movimientos.map(m => m.cuenta).filter(Boolean))].sort(), [movimientos])
   const tags = useMemo(() => [...new Set(movimientos.flatMap(m => m.etiquetas || []))].sort(), [movimientos])
 
@@ -199,7 +200,7 @@ export default function Movimientos() {
               <button key={m.id} className="listrow" onClick={() => setEditar(m)}>
                 <span className="avatar" style={{ borderRadius: 12, background: !c ? 'var(--warn-soft)' : inc ? 'var(--ok-soft)' : 'var(--accent-soft)', color: !c ? 'var(--warn)' : inc ? 'var(--ok)' : 'var(--accent)' }}>{c ? c.nombre[0] : '?'}</span>
                 <span className="col grow" style={{ gap: 3 }}>
-                  <span className="ellipsis bold" style={{ fontSize: 14 }}>{m.concepto || '(sin concepto)'}</span>
+                  <span className="ellipsis bold" style={{ fontSize: 14 }}>{m.concepto || '(sin concepto)'}{m.division_id && <span className="pill-div">÷ {m.division_orden}/{divN[m.division_id]}</span>}</span>
                   <span className={'xs ' + (c ? 'muted' : 'warn bold')}>{c ? c.nombre : 'Sin categoría · asignar'}{!porFecha ? ' · ' + fechaCorta(m.fecha) : ''}{m.etiquetas?.length ? ' · ' + m.etiquetas.join(', ') : ''}</span>
                 </span>
                 <span className={'bold nowrap' + (inc ? ' ok' : '')}>{signed2(m.importe)}</span>
@@ -224,7 +225,7 @@ export default function Movimientos() {
             <tr key={m.id} className={'clickable' + (sel[m.id] ? ' sel' : '')} onClick={() => setEditar(m)}>
               <td onClick={e => e.stopPropagation()}><input type="checkbox" aria-label={'Seleccionar ' + m.concepto} checked={!!sel[m.id]} onChange={() => setSel(s => ({ ...s, [m.id]: !s[m.id] }))} style={{ width: 18, height: 18, accentColor: 'var(--accent)' }} /></td>
               <td className="muted nowrap">{fechaCorta(m.fecha)}</td>
-              <td className="bold"><span className="ellipsis" style={{ display: 'block' }} title={m.concepto}>{m.concepto || '(sin concepto)'}</span></td>
+              <td className="bold"><span className="ellipsis" style={{ display: 'block' }} title={m.division_id ? `${m.concepto} — parte ${m.division_orden} de ${divN[m.division_id]} (total ${fmt2(m.importe_original ?? 0)})` : m.concepto}>{m.concepto || '(sin concepto)'}{m.division_id && <span className="pill-div">÷ {m.division_orden}/{divN[m.division_id]}</span>}</span></td>
               <td style={{ overflow: 'hidden' }}>{catTag(m)}</td>
               <td className="muted"><span className="ellipsis" style={{ display: 'block' }}>{(m.etiquetas || []).join(', ') || '—'}</span></td>
               <td className={'num bold' + (m.importe > 0 ? ' ok' : '')}>{signed2(m.importe)}</td>
